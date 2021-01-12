@@ -1,0 +1,2414 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: geopandas in /opt/anaconda3/lib/python3.8/site-packages (0.8.1)\n",
+      "Requirement already satisfied: pandas>=0.23.0 in /opt/anaconda3/lib/python3.8/site-packages (from geopandas) (1.1.3)\n",
+      "Requirement already satisfied: pyproj>=2.2.0 in /opt/anaconda3/lib/python3.8/site-packages (from geopandas) (3.0.0.post1)\n",
+      "Requirement already satisfied: fiona in /opt/anaconda3/lib/python3.8/site-packages (from geopandas) (1.8.18)\n",
+      "Requirement already satisfied: shapely in /opt/anaconda3/lib/python3.8/site-packages (from geopandas) (1.7.1)\n",
+      "Requirement already satisfied: pytz>=2017.2 in /opt/anaconda3/lib/python3.8/site-packages (from pandas>=0.23.0->geopandas) (2020.1)\n",
+      "Requirement already satisfied: numpy>=1.15.4 in /opt/anaconda3/lib/python3.8/site-packages (from pandas>=0.23.0->geopandas) (1.19.2)\n",
+      "Requirement already satisfied: python-dateutil>=2.7.3 in /opt/anaconda3/lib/python3.8/site-packages (from pandas>=0.23.0->geopandas) (2.8.1)\n",
+      "Requirement already satisfied: certifi in /opt/anaconda3/lib/python3.8/site-packages (from pyproj>=2.2.0->geopandas) (2020.6.20)\n",
+      "Requirement already satisfied: six>=1.7 in /opt/anaconda3/lib/python3.8/site-packages (from fiona->geopandas) (1.15.0)\n",
+      "Requirement already satisfied: attrs>=17 in /opt/anaconda3/lib/python3.8/site-packages (from fiona->geopandas) (20.3.0)\n",
+      "Requirement already satisfied: click-plugins>=1.0 in /opt/anaconda3/lib/python3.8/site-packages (from fiona->geopandas) (1.1.1)\n",
+      "Requirement already satisfied: click<8,>=4.0 in /opt/anaconda3/lib/python3.8/site-packages (from fiona->geopandas) (7.1.2)\n",
+      "Requirement already satisfied: cligj>=0.5 in /opt/anaconda3/lib/python3.8/site-packages (from fiona->geopandas) (0.7.1)\n",
+      "Requirement already satisfied: munch in /opt/anaconda3/lib/python3.8/site-packages (from fiona->geopandas) (2.5.0)\n",
+      "Note: you may need to restart the kernel to use updated packages.\n"
+     ]
+    }
+   ],
+   "source": [
+    "pip install geopandas"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: geocoder in /opt/anaconda3/lib/python3.8/site-packages (1.38.1)\n",
+      "Requirement already satisfied: requests in /opt/anaconda3/lib/python3.8/site-packages (from geocoder) (2.24.0)\n",
+      "Requirement already satisfied: six in /opt/anaconda3/lib/python3.8/site-packages (from geocoder) (1.15.0)\n",
+      "Requirement already satisfied: ratelim in /opt/anaconda3/lib/python3.8/site-packages (from geocoder) (0.1.6)\n",
+      "Requirement already satisfied: click in /opt/anaconda3/lib/python3.8/site-packages (from geocoder) (7.1.2)\n",
+      "Requirement already satisfied: future in /opt/anaconda3/lib/python3.8/site-packages (from geocoder) (0.18.2)\n",
+      "Requirement already satisfied: chardet<4,>=3.0.2 in /opt/anaconda3/lib/python3.8/site-packages (from requests->geocoder) (3.0.4)\n",
+      "Requirement already satisfied: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /opt/anaconda3/lib/python3.8/site-packages (from requests->geocoder) (1.25.11)\n",
+      "Requirement already satisfied: idna<3,>=2.5 in /opt/anaconda3/lib/python3.8/site-packages (from requests->geocoder) (2.10)\n",
+      "Requirement already satisfied: certifi>=2017.4.17 in /opt/anaconda3/lib/python3.8/site-packages (from requests->geocoder) (2020.6.20)\n",
+      "Requirement already satisfied: decorator in /opt/anaconda3/lib/python3.8/site-packages (from ratelim->geocoder) (4.4.2)\n",
+      "Note: you may need to restart the kernel to use updated packages.\n"
+     ]
+    }
+   ],
+   "source": [
+    "pip install geocoder"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Collecting package metadata (current_repodata.json): done\n",
+      "Solving environment: done\n",
+      "\n",
+      "# All requested packages already installed.\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "!conda install -c conda-forge geopy --yes\n",
+    "from geopy.geocoders import Nominatim\n",
+    "import requests"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Country</th>\n",
+       "      <th>Area</th>\n",
+       "      <th>District</th>\n",
+       "      <th>Neighbourhood</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Western District</td>\n",
+       "      <td>Mid-Levels</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Western District</td>\n",
+       "      <td>Sai Wan</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Western District</td>\n",
+       "      <td>Sheng Wan</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Eastern District</td>\n",
+       "      <td>Chai Wan</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Eastern District</td>\n",
+       "      <td>North Point</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>116</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Kam Tin</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>117</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>San Tin</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>118</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Mai Po</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>119</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Tin Shui Wai</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>120</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Yuen Long</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>121 rows × 4 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       Country              Area            District Neighbourhood\n",
+       "0    Hong kong  Hong Kong Island    Western District    Mid-Levels\n",
+       "1    Hong kong  Hong Kong Island    Western District       Sai Wan\n",
+       "2    Hong kong  Hong Kong Island    Western District     Sheng Wan\n",
+       "3    Hong kong  Hong Kong Island    Eastern District      Chai Wan\n",
+       "4    Hong kong  Hong Kong Island    Eastern District   North Point\n",
+       "..         ...               ...                 ...           ...\n",
+       "116  Hong kong   New Terrirories  Yuen Long District       Kam Tin\n",
+       "117  Hong kong   New Terrirories  Yuen Long District       San Tin\n",
+       "118  Hong kong   New Terrirories  Yuen Long District        Mai Po\n",
+       "119  Hong kong   New Terrirories  Yuen Long District  Tin Shui Wai\n",
+       "120  Hong kong   New Terrirories  Yuen Long District     Yuen Long\n",
+       "\n",
+       "[121 rows x 4 columns]"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ldf = pd.read_excel(r\"/Users/Zaref/Desktop/HKNeighbourhoods.xlsx\")\n",
+    "ldf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "geolocator = Nominatim(user_agent = 'hk_explorer')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Mid-Levels, HongKong'"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "N = ldf.loc[0,'Neighbourhood']\n",
+    "C = 'HongKong'\n",
+    "address = N + ', ' + C\n",
+    "address"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The geograpical coordinates are 22.2824052, 114.145809.\n"
+     ]
+    }
+   ],
+   "source": [
+    "location = geolocator.geocode(address)\n",
+    "latitude = location.latitude\n",
+    "longitude = location.longitude\n",
+    "print('The geograpical coordinates are {}, {}.'.format(latitude, longitude))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ldf['Long'] = \"\"\n",
+    "ldf['Lat'] = \"\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x = range(len(ldf))\n",
+    "for n in x:\n",
+    "    N = ldf.loc[n,'Neighbourhood']\n",
+    "    C = 'HongKong'\n",
+    "    address = N + ', ' + C\n",
+    "    location = geolocator.geocode(address)\n",
+    "    if location:\n",
+    "        latitude = location.latitude\n",
+    "        longitude = location.longitude\n",
+    "    else:\n",
+    "        latitude = np.NaN\n",
+    "        longitude = np.NaN\n",
+    "    ldf.loc[n,'Long'] = longitude\n",
+    "    ldf.loc[n,'Lat'] = latitude"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Country</th>\n",
+       "      <th>Area</th>\n",
+       "      <th>District</th>\n",
+       "      <th>Neighbourhood</th>\n",
+       "      <th>Long</th>\n",
+       "      <th>Lat</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Western District</td>\n",
+       "      <td>Mid-Levels</td>\n",
+       "      <td>114.146</td>\n",
+       "      <td>22.2824</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Western District</td>\n",
+       "      <td>Sai Wan</td>\n",
+       "      <td>114.134</td>\n",
+       "      <td>22.2858</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Western District</td>\n",
+       "      <td>Sheng Wan</td>\n",
+       "      <td>114.154</td>\n",
+       "      <td>22.2791</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Eastern District</td>\n",
+       "      <td>Chai Wan</td>\n",
+       "      <td>114.237</td>\n",
+       "      <td>22.2648</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>Hong Kong Island</td>\n",
+       "      <td>Eastern District</td>\n",
+       "      <td>North Point</td>\n",
+       "      <td>114.199</td>\n",
+       "      <td>22.2907</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>116</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Kam Tin</td>\n",
+       "      <td>114.065</td>\n",
+       "      <td>22.4393</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>117</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>San Tin</td>\n",
+       "      <td>114.07</td>\n",
+       "      <td>22.5024</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>118</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Mai Po</td>\n",
+       "      <td>114.052</td>\n",
+       "      <td>22.4998</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>119</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Tin Shui Wai</td>\n",
+       "      <td>114.002</td>\n",
+       "      <td>22.4596</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>120</th>\n",
+       "      <td>Hong kong</td>\n",
+       "      <td>New Terrirories</td>\n",
+       "      <td>Yuen Long District</td>\n",
+       "      <td>Yuen Long</td>\n",
+       "      <td>114.029</td>\n",
+       "      <td>22.4445</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>121 rows × 6 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       Country              Area            District Neighbourhood     Long  \\\n",
+       "0    Hong kong  Hong Kong Island    Western District    Mid-Levels  114.146   \n",
+       "1    Hong kong  Hong Kong Island    Western District       Sai Wan  114.134   \n",
+       "2    Hong kong  Hong Kong Island    Western District     Sheng Wan  114.154   \n",
+       "3    Hong kong  Hong Kong Island    Eastern District      Chai Wan  114.237   \n",
+       "4    Hong kong  Hong Kong Island    Eastern District   North Point  114.199   \n",
+       "..         ...               ...                 ...           ...      ...   \n",
+       "116  Hong kong   New Terrirories  Yuen Long District       Kam Tin  114.065   \n",
+       "117  Hong kong   New Terrirories  Yuen Long District       San Tin   114.07   \n",
+       "118  Hong kong   New Terrirories  Yuen Long District        Mai Po  114.052   \n",
+       "119  Hong kong   New Terrirories  Yuen Long District  Tin Shui Wai  114.002   \n",
+       "120  Hong kong   New Terrirories  Yuen Long District     Yuen Long  114.029   \n",
+       "\n",
+       "         Lat  \n",
+       "0    22.2824  \n",
+       "1    22.2858  \n",
+       "2    22.2791  \n",
+       "3    22.2648  \n",
+       "4    22.2907  \n",
+       "..       ...  \n",
+       "116  22.4393  \n",
+       "117  22.5024  \n",
+       "118  22.4998  \n",
+       "119  22.4596  \n",
+       "120  22.4445  \n",
+       "\n",
+       "[121 rows x 6 columns]"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ldf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ldf['Long'].isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Int64Index([79], dtype='int64')"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ldf.loc[pd.isna(ldf[\"Long\"]), :].index\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Kiu Tsui Chau'"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ldf.loc[79,'Neighbourhood']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ldf.loc[79,'Neighbourhood'] = 'Sharp Island'"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Address1 = 'Sharp Island, HongKong'"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The geograpical coordinates are 22.36434665, 114.29416798345032.\n"
+     ]
+    }
+   ],
+   "source": [
+    "location = geolocator.geocode(Address1)\n",
+    "latitude = location.latitude\n",
+    "longitude = location.longitude\n",
+    "print('The geograpical coordinates are {}, {}.'.format(latitude, longitude))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ldf.loc[79,'Lat'] = latitude\n",
+    "ldf.loc[79,'Long'] = longitude"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ldf['Long'].isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Neighbourhood</th>\n",
+       "      <th>Long</th>\n",
+       "      <th>Lat</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Mid-Levels</td>\n",
+       "      <td>114.146</td>\n",
+       "      <td>22.2824</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Sai Wan</td>\n",
+       "      <td>114.134</td>\n",
+       "      <td>22.2858</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Sheng Wan</td>\n",
+       "      <td>114.154</td>\n",
+       "      <td>22.2791</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Chai Wan</td>\n",
+       "      <td>114.237</td>\n",
+       "      <td>22.2648</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>North Point</td>\n",
+       "      <td>114.199</td>\n",
+       "      <td>22.2907</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>116</th>\n",
+       "      <td>Kam Tin</td>\n",
+       "      <td>114.065</td>\n",
+       "      <td>22.4393</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>117</th>\n",
+       "      <td>San Tin</td>\n",
+       "      <td>114.07</td>\n",
+       "      <td>22.5024</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>118</th>\n",
+       "      <td>Mai Po</td>\n",
+       "      <td>114.052</td>\n",
+       "      <td>22.4998</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>119</th>\n",
+       "      <td>Tin Shui Wai</td>\n",
+       "      <td>114.002</td>\n",
+       "      <td>22.4596</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>120</th>\n",
+       "      <td>Yuen Long</td>\n",
+       "      <td>114.029</td>\n",
+       "      <td>22.4445</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>121 rows × 3 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    Neighbourhood     Long      Lat\n",
+       "0      Mid-Levels  114.146  22.2824\n",
+       "1         Sai Wan  114.134  22.2858\n",
+       "2       Sheng Wan  114.154  22.2791\n",
+       "3        Chai Wan  114.237  22.2648\n",
+       "4     North Point  114.199  22.2907\n",
+       "..            ...      ...      ...\n",
+       "116       Kam Tin  114.065  22.4393\n",
+       "117       San Tin   114.07  22.5024\n",
+       "118        Mai Po  114.052  22.4998\n",
+       "119  Tin Shui Wai  114.002  22.4596\n",
+       "120     Yuen Long  114.029  22.4445\n",
+       "\n",
+       "[121 rows x 3 columns]"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ldf.drop(['Country','Area', 'District'], axis = 1, inplace = True)\n",
+    "ldf"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "  "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 2. Hong Kong Covid Data (14 days)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>District</th>\n",
+       "      <th>Building name</th>\n",
+       "      <th>Last date of residence of the case(s)</th>\n",
+       "      <th>Related probable/confirmed cases</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Yuen Long</td>\n",
+       "      <td>Ping Yin House, Ping Yan Court</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>6904</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Kwai Tsing</td>\n",
+       "      <td>Block 1, Kwai Shing West Estate</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>6905</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Eastern</td>\n",
+       "      <td>Oi Ping House, Oi Tung Estate</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>6906</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Tsuen Wan</td>\n",
+       "      <td>Sam Tung Uk Resite Village</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>6907</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Kwun Tong</td>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>6908</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>Sai Kung</td>\n",
+       "      <td>MCP Central Phase II (non-residential)</td>\n",
+       "      <td>19/12/2020</td>\n",
+       "      <td>8156</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>Sai Kung</td>\n",
+       "      <td>Metro City Market (non-residential)</td>\n",
+       "      <td>19/12/2020</td>\n",
+       "      <td>8156</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>Kwun Tong</td>\n",
+       "      <td>Shun Lee Market (non-residential)</td>\n",
+       "      <td>19/12/2020</td>\n",
+       "      <td>8169</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>Kwun Tong</td>\n",
+       "      <td>G/F Wang Kwong Building (non-residential)</td>\n",
+       "      <td>19/12/2020</td>\n",
+       "      <td>8231</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>Sai Kung</td>\n",
+       "      <td>PopCorn Sushi Senju (non-residential)</td>\n",
+       "      <td>20/12/2020</td>\n",
+       "      <td>8231</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 4 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        District                              Building name  \\\n",
+       "0      Yuen Long             Ping Yin House, Ping Yan Court   \n",
+       "1     Kwai Tsing            Block 1, Kwai Shing West Estate   \n",
+       "2        Eastern              Oi Ping House, Oi Tung Estate   \n",
+       "3      Tsuen Wan                 Sam Tung Uk Resite Village   \n",
+       "4      Kwun Tong                 Front Block, Luen On House   \n",
+       "...          ...                                        ...   \n",
+       "1690    Sai Kung     MCP Central Phase II (non-residential)   \n",
+       "1691    Sai Kung        Metro City Market (non-residential)   \n",
+       "1692   Kwun Tong          Shun Lee Market (non-residential)   \n",
+       "1693   Kwun Tong  G/F Wang Kwong Building (non-residential)   \n",
+       "1694    Sai Kung      PopCorn Sushi Senju (non-residential)   \n",
+       "\n",
+       "     Last date of residence of the case(s) Related probable/confirmed cases  \n",
+       "0                                      NaN                             6904  \n",
+       "1                                      NaN                             6905  \n",
+       "2                                      NaN                             6906  \n",
+       "3                                      NaN                             6907  \n",
+       "4                                      NaN                             6908  \n",
+       "...                                    ...                              ...  \n",
+       "1690                            19/12/2020                             8156  \n",
+       "1691                            19/12/2020                             8156  \n",
+       "1692                            19/12/2020                             8169  \n",
+       "1693                            19/12/2020                             8231  \n",
+       "1694                            20/12/2020                             8231  \n",
+       "\n",
+       "[1695 rows x 4 columns]"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cdf = pd.read_csv(r\"/Users/Zaref/Desktop/building_list_eng.csv\")\n",
+    "cdf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Building name</th>\n",
+       "      <th>Related probable/confirmed cases</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Ping Yin House, Ping Yan Court</td>\n",
+       "      <td>6904</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Block 1, Kwai Shing West Estate</td>\n",
+       "      <td>6905</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Oi Ping House, Oi Tung Estate</td>\n",
+       "      <td>6906</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Sam Tung Uk Resite Village</td>\n",
+       "      <td>6907</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>6908</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>MCP Central Phase II (non-residential)</td>\n",
+       "      <td>8156</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>Metro City Market (non-residential)</td>\n",
+       "      <td>8156</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>Shun Lee Market (non-residential)</td>\n",
+       "      <td>8169</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>G/F Wang Kwong Building (non-residential)</td>\n",
+       "      <td>8231</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>PopCorn Sushi Senju (non-residential)</td>\n",
+       "      <td>8231</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 2 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                  Building name  \\\n",
+       "0                Ping Yin House, Ping Yan Court   \n",
+       "1               Block 1, Kwai Shing West Estate   \n",
+       "2                 Oi Ping House, Oi Tung Estate   \n",
+       "3                    Sam Tung Uk Resite Village   \n",
+       "4                    Front Block, Luen On House   \n",
+       "...                                         ...   \n",
+       "1690     MCP Central Phase II (non-residential)   \n",
+       "1691        Metro City Market (non-residential)   \n",
+       "1692          Shun Lee Market (non-residential)   \n",
+       "1693  G/F Wang Kwong Building (non-residential)   \n",
+       "1694      PopCorn Sushi Senju (non-residential)   \n",
+       "\n",
+       "     Related probable/confirmed cases  \n",
+       "0                                6904  \n",
+       "1                                6905  \n",
+       "2                                6906  \n",
+       "3                                6907  \n",
+       "4                                6908  \n",
+       "...                               ...  \n",
+       "1690                             8156  \n",
+       "1691                             8156  \n",
+       "1692                             8169  \n",
+       "1693                             8231  \n",
+       "1694                             8231  \n",
+       "\n",
+       "[1695 rows x 2 columns]"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cdf.drop(['Last date of residence of the case(s)', 'District'], axis = 1, inplace = True)\n",
+    "cdf"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Chainging case numbers to number of cases (count):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'6539, 6541, 6542, 6667, 6956, 7234, 7352'"
+      ]
+     },
+     "execution_count": 29,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cdf.loc[1247,'Related probable/confirmed cases']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "6"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cdf.loc[1247,'Related probable/confirmed cases'].count(',')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Actual number of cases is 7, therefore need to add one to each count of ','"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cdf['CaseCount'] = \"\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x = range(len(cdf))\n",
+    "for n in x:\n",
+    "    cc = cdf.loc[n,'Related probable/confirmed cases'].count(',')\n",
+    "    cdf.loc[n,'CaseCount'] = cc + 1"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Building name</th>\n",
+       "      <th>Related probable/confirmed cases</th>\n",
+       "      <th>CaseCount</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Ping Yin House, Ping Yan Court</td>\n",
+       "      <td>6904</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Block 1, Kwai Shing West Estate</td>\n",
+       "      <td>6905</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Oi Ping House, Oi Tung Estate</td>\n",
+       "      <td>6906</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Sam Tung Uk Resite Village</td>\n",
+       "      <td>6907</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>6908</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>MCP Central Phase II (non-residential)</td>\n",
+       "      <td>8156</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>Metro City Market (non-residential)</td>\n",
+       "      <td>8156</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>Shun Lee Market (non-residential)</td>\n",
+       "      <td>8169</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>G/F Wang Kwong Building (non-residential)</td>\n",
+       "      <td>8231</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>PopCorn Sushi Senju (non-residential)</td>\n",
+       "      <td>8231</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 3 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                  Building name  \\\n",
+       "0                Ping Yin House, Ping Yan Court   \n",
+       "1               Block 1, Kwai Shing West Estate   \n",
+       "2                 Oi Ping House, Oi Tung Estate   \n",
+       "3                    Sam Tung Uk Resite Village   \n",
+       "4                    Front Block, Luen On House   \n",
+       "...                                         ...   \n",
+       "1690     MCP Central Phase II (non-residential)   \n",
+       "1691        Metro City Market (non-residential)   \n",
+       "1692          Shun Lee Market (non-residential)   \n",
+       "1693  G/F Wang Kwong Building (non-residential)   \n",
+       "1694      PopCorn Sushi Senju (non-residential)   \n",
+       "\n",
+       "     Related probable/confirmed cases CaseCount  \n",
+       "0                                6904         1  \n",
+       "1                                6905         1  \n",
+       "2                                6906         1  \n",
+       "3                                6907         1  \n",
+       "4                                6908         1  \n",
+       "...                               ...       ...  \n",
+       "1690                             8156         1  \n",
+       "1691                             8156         1  \n",
+       "1692                             8169         1  \n",
+       "1693                             8231         1  \n",
+       "1694                             8231         1  \n",
+       "\n",
+       "[1695 rows x 3 columns]"
+      ]
+     },
+     "execution_count": 33,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cdf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Building name</th>\n",
+       "      <th>CaseCount</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Ping Yin House, Ping Yan Court</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Block 1, Kwai Shing West Estate</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Oi Ping House, Oi Tung Estate</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Sam Tung Uk Resite Village</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>MCP Central Phase II (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>Metro City Market (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>Shun Lee Market (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>G/F Wang Kwong Building (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>PopCorn Sushi Senju (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 2 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                  Building name CaseCount\n",
+       "0                Ping Yin House, Ping Yan Court         1\n",
+       "1               Block 1, Kwai Shing West Estate         1\n",
+       "2                 Oi Ping House, Oi Tung Estate         1\n",
+       "3                    Sam Tung Uk Resite Village         1\n",
+       "4                    Front Block, Luen On House         1\n",
+       "...                                         ...       ...\n",
+       "1690     MCP Central Phase II (non-residential)         1\n",
+       "1691        Metro City Market (non-residential)         1\n",
+       "1692          Shun Lee Market (non-residential)         1\n",
+       "1693  G/F Wang Kwong Building (non-residential)         1\n",
+       "1694      PopCorn Sushi Senju (non-residential)         1\n",
+       "\n",
+       "[1695 rows x 2 columns]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cdf.drop(['Related probable/confirmed cases'], axis = 1, inplace = True)\n",
+    "cdf"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Normalise"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn import preprocessing"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(1695,)"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x = cdf['CaseCount'].values\n",
+    "x.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(1695, 1)"
+      ]
+     },
+     "execution_count": 37,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x = x.reshape(-1, 1)\n",
+    "x.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1.0    1695\n",
+       "Name: 0, dtype: int64"
+      ]
+     },
+     "execution_count": 38,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "n_x = preprocessing.normalize(x)\n",
+    "ndf = pd.DataFrame(n_x)\n",
+    "ndf[0].value_counts()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "min_max_scaler = preprocessing.MinMaxScaler()\n",
+    "x_n = min_max_scaler.fit_transform(x)\n",
+    "ncdf = pd.DataFrame(x_n)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 1 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        0\n",
+       "0     0.0\n",
+       "1     0.0\n",
+       "2     0.0\n",
+       "3     0.0\n",
+       "4     0.0\n",
+       "...   ...\n",
+       "1690  0.0\n",
+       "1691  0.0\n",
+       "1692  0.0\n",
+       "1693  0.0\n",
+       "1694  0.0\n",
+       "\n",
+       "[1695 rows x 1 columns]"
+      ]
+     },
+     "execution_count": 40,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ncdf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.000000    1557\n",
+       "0.027778      72\n",
+       "0.055556      25\n",
+       "0.083333      11\n",
+       "0.166667       8\n",
+       "0.111111       8\n",
+       "0.138889       2\n",
+       "0.305556       2\n",
+       "0.194444       2\n",
+       "0.250000       2\n",
+       "1.000000       1\n",
+       "0.611111       1\n",
+       "0.416667       1\n",
+       "0.583333       1\n",
+       "0.527778       1\n",
+       "0.805556       1\n",
+       "Name: 0, dtype: int64"
+      ]
+     },
+     "execution_count": 41,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ncdf[0].value_counts()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.preprocessing import MaxAbsScaler"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "MaxAbsScaler()"
+      ]
+     },
+     "execution_count": 44,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "transformer = MaxAbsScaler().fit(x)\n",
+    "transformer"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X = transformer.transform(x)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 1 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "             0\n",
+       "0     0.027027\n",
+       "1     0.027027\n",
+       "2     0.027027\n",
+       "3     0.027027\n",
+       "4     0.027027\n",
+       "...        ...\n",
+       "1690  0.027027\n",
+       "1691  0.027027\n",
+       "1692  0.027027\n",
+       "1693  0.027027\n",
+       "1694  0.027027\n",
+       "\n",
+       "[1695 rows x 1 columns]"
+      ]
+     },
+     "execution_count": 46,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "n_ccdf = pd.DataFrame(X)\n",
+    "n_ccdf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 47,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.027027    1557\n",
+       "0.054054      72\n",
+       "0.081081      25\n",
+       "0.108108      11\n",
+       "0.135135       8\n",
+       "0.189189       8\n",
+       "0.216216       2\n",
+       "0.270270       2\n",
+       "0.162162       2\n",
+       "0.324324       2\n",
+       "0.810811       1\n",
+       "0.540541       1\n",
+       "0.621622       1\n",
+       "0.594595       1\n",
+       "0.432432       1\n",
+       "1.000000       1\n",
+       "Name: 0, dtype: int64"
+      ]
+     },
+     "execution_count": 47,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "n_ccdf[0].value_counts()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Building name</th>\n",
+       "      <th>CaseCount</th>\n",
+       "      <th>0</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Ping Yin House, Ping Yan Court</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Block 1, Kwai Shing West Estate</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Oi Ping House, Oi Tung Estate</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Sam Tung Uk Resite Village</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>MCP Central Phase II (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>Metro City Market (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>Shun Lee Market (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>G/F Wang Kwong Building (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>PopCorn Sushi Senju (non-residential)</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 3 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                  Building name CaseCount         0\n",
+       "0                Ping Yin House, Ping Yan Court         1  0.027027\n",
+       "1               Block 1, Kwai Shing West Estate         1  0.027027\n",
+       "2                 Oi Ping House, Oi Tung Estate         1  0.027027\n",
+       "3                    Sam Tung Uk Resite Village         1  0.027027\n",
+       "4                    Front Block, Luen On House         1  0.027027\n",
+       "...                                         ...       ...       ...\n",
+       "1690     MCP Central Phase II (non-residential)         1  0.027027\n",
+       "1691        Metro City Market (non-residential)         1  0.027027\n",
+       "1692          Shun Lee Market (non-residential)         1  0.027027\n",
+       "1693  G/F Wang Kwong Building (non-residential)         1  0.027027\n",
+       "1694      PopCorn Sushi Senju (non-residential)         1  0.027027\n",
+       "\n",
+       "[1695 rows x 3 columns]"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ccdf = pd.concat([cdf, n_ccdf], axis = 1, sort = False)\n",
+    "ccdf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ccdf.drop(['CaseCount'], axis = 1, inplace = True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 50,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ccdf = pd.DataFrame(ccdf)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Building Address</th>\n",
+       "      <th>CaseCount</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Ping Yin House, Ping Yan Court</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Block 1, Kwai Shing West Estate</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Oi Ping House, Oi Tung Estate</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Sam Tung Uk Resite Village</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1690</th>\n",
+       "      <td>MCP Central Phase II (non-residential)</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1691</th>\n",
+       "      <td>Metro City Market (non-residential)</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1692</th>\n",
+       "      <td>Shun Lee Market (non-residential)</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1693</th>\n",
+       "      <td>G/F Wang Kwong Building (non-residential)</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1694</th>\n",
+       "      <td>PopCorn Sushi Senju (non-residential)</td>\n",
+       "      <td>0.027027</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1695 rows × 2 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                               Building Address  CaseCount\n",
+       "0                Ping Yin House, Ping Yan Court   0.027027\n",
+       "1               Block 1, Kwai Shing West Estate   0.027027\n",
+       "2                 Oi Ping House, Oi Tung Estate   0.027027\n",
+       "3                    Sam Tung Uk Resite Village   0.027027\n",
+       "4                    Front Block, Luen On House   0.027027\n",
+       "...                                         ...        ...\n",
+       "1690     MCP Central Phase II (non-residential)   0.027027\n",
+       "1691        Metro City Market (non-residential)   0.027027\n",
+       "1692          Shun Lee Market (non-residential)   0.027027\n",
+       "1693  G/F Wang Kwong Building (non-residential)   0.027027\n",
+       "1694      PopCorn Sushi Senju (non-residential)   0.027027\n",
+       "\n",
+       "[1695 rows x 2 columns]"
+      ]
+     },
+     "execution_count": 51,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ccdf.columns = ['Building Address', 'CaseCount']\n",
+    "ccdf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 52,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ccdf['Long'] = \"\"\n",
+    "ccdf['Lat'] = \"\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import urllib.parse"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 108,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import csv"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 143,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "row_list = ['BuildingAddress', 'Lat', 'Long']\n",
+    "with open('data.csv', 'w', newline='') as file:\n",
+    "        writer = csv.writer(file)\n",
+    "        writer.writerow(row_list)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 139,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x= range(3)\n",
+    "for n in x:\n",
+    "    address = ccdf.loc[n,'Building Address']\n",
+    "    url = 'https://nominatim.openstreetmap.org/search/' + urllib.parse.quote(address) +'?format=json'\n",
+    "    response = requests.get(url).json()\n",
+    "    if response:\n",
+    "        latitude = response[0][\"lat\"]\n",
+    "        longitude = response[0][\"lon\"]\n",
+    "    else:\n",
+    "        latitude = np.NaN\n",
+    "        longitude = np.NaN\n",
+    "    with open('data.csv', 'a', newline='') as file:\n",
+    "        writer = csv.writer(file)\n",
+    "        row= [str(ccdf.loc[n,'Building Address']), str(latitude), str(longitude)]\n",
+    "        writer.writerow(row)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x = range(len(ccdf))\n",
+    "for n in x:\n",
+    "    address = ccdf.loc[n,'Building Address']\n",
+    "    url = 'https://nominatim.openstreetmap.org/search/' + urllib.parse.quote(address) +'?format=json'\n",
+    "    response = requests.get(url).json()\n",
+    "    if response:\n",
+    "        latitude = response[0][\"lat\"]\n",
+    "        longitude = response[0][\"lon\"]\n",
+    "    else:\n",
+    "        latitude = np.NaN\n",
+    "        longitude = np.NaN\n",
+    "    with open('data.csv', 'a', newline='') as file:\n",
+    "        writer = csv.writer(file)\n",
+    "        row= [str(ccdf.loc[n,'Building Address']), str(latitude), str(longitude)]\n",
+    "        writer.writerows(row)\n",
+    "#     ccdf.loc[n,'Long'] = longitude\n",
+    "#     ccdf.loc[n,'Lat'] = latitude"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 142,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Index</th>\n",
+       "      <th>BuildingAddress</th>\n",
+       "      <th>Lat</th>\n",
+       "      <th>Long</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>Ping Yin House, Ping Yan Court</td>\n",
+       "      <td>22.445393</td>\n",
+       "      <td>114.003709</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>Block 1, Kwai Shing West Estate</td>\n",
+       "      <td>22.361593</td>\n",
+       "      <td>114.122087</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>2</td>\n",
+       "      <td>Oi Ping House, Oi Tung Estate</td>\n",
+       "      <td>22.281942</td>\n",
+       "      <td>114.227705</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>Block C, Phase 2, Sunshine City</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>6</td>\n",
+       "      <td>Lei Fook House High Block, Ap Lei Chau Estate</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>7</td>\n",
+       "      <td>Tower 1, Sol City</td>\n",
+       "      <td>42.426226</td>\n",
+       "      <td>-2.080095</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>8</td>\n",
+       "      <td>Tower 3, Man Lai Court</td>\n",
+       "      <td>22.374983</td>\n",
+       "      <td>114.181909</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>9</td>\n",
+       "      <td>Ming Yan Lau, Jat Min Chuen</td>\n",
+       "      <td>22.376398</td>\n",
+       "      <td>114.192386</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>10</td>\n",
+       "      <td>Front Block, Luen On House</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>10</th>\n",
+       "      <td>11</td>\n",
+       "      <td>Choi Shing House, Choi Tak Estate</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>11</th>\n",
+       "      <td>12</td>\n",
+       "      <td>Lai Yeung House, Lei Cheng Uk Estate</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>13</td>\n",
+       "      <td>Good Luck House, Portland Street</td>\n",
+       "      <td>22.314212</td>\n",
+       "      <td>114.169916</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>14</td>\n",
+       "      <td>Sam Tung Uk Resite Village</td>\n",
+       "      <td>22.379967</td>\n",
+       "      <td>114.130490</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>15</td>\n",
+       "      <td>Xi Hotel</td>\n",
+       "      <td>22.296940</td>\n",
+       "      <td>114.174164</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>16</td>\n",
+       "      <td>Chi Tai House, On Tai Estate</td>\n",
+       "      <td>22.328731</td>\n",
+       "      <td>114.229049</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>16</th>\n",
+       "      <td>17</td>\n",
+       "      <td>Jardine Summit</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>18</td>\n",
+       "      <td>Tower 2, Greenhill Villa</td>\n",
+       "      <td>22.383668</td>\n",
+       "      <td>114.213237</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>19</td>\n",
+       "      <td>Tung Wah Group of Hospitals Ho Yuk Ching Willo...</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    Index                                    BuildingAddress        Lat  \\\n",
+       "0       0                     Ping Yin House, Ping Yan Court  22.445393   \n",
+       "1       1                    Block 1, Kwai Shing West Estate  22.361593   \n",
+       "2       2                      Oi Ping House, Oi Tung Estate  22.281942   \n",
+       "3       4                         Front Block, Luen On House        NaN   \n",
+       "4       5                    Block C, Phase 2, Sunshine City        NaN   \n",
+       "5       6      Lei Fook House High Block, Ap Lei Chau Estate        NaN   \n",
+       "6       7                                  Tower 1, Sol City  42.426226   \n",
+       "7       8                             Tower 3, Man Lai Court  22.374983   \n",
+       "8       9                        Ming Yan Lau, Jat Min Chuen  22.376398   \n",
+       "9      10                         Front Block, Luen On House        NaN   \n",
+       "10     11                  Choi Shing House, Choi Tak Estate        NaN   \n",
+       "11     12               Lai Yeung House, Lei Cheng Uk Estate        NaN   \n",
+       "12     13                   Good Luck House, Portland Street  22.314212   \n",
+       "13     14                         Sam Tung Uk Resite Village  22.379967   \n",
+       "14     15                                           Xi Hotel  22.296940   \n",
+       "15     16                       Chi Tai House, On Tai Estate  22.328731   \n",
+       "16     17                                     Jardine Summit        NaN   \n",
+       "17     18                           Tower 2, Greenhill Villa  22.383668   \n",
+       "18     19  Tung Wah Group of Hospitals Ho Yuk Ching Willo...        NaN   \n",
+       "\n",
+       "          Long  \n",
+       "0   114.003709  \n",
+       "1   114.122087  \n",
+       "2   114.227705  \n",
+       "3          NaN  \n",
+       "4          NaN  \n",
+       "5          NaN  \n",
+       "6    -2.080095  \n",
+       "7   114.181909  \n",
+       "8   114.192386  \n",
+       "9          NaN  \n",
+       "10         NaN  \n",
+       "11         NaN  \n",
+       "12  114.169916  \n",
+       "13  114.130490  \n",
+       "14  114.174164  \n",
+       "15  114.229049  \n",
+       "16         NaN  \n",
+       "17  114.213237  \n",
+       "18         NaN  "
+      ]
+     },
+     "execution_count": 142,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "lldf = pd.read_csv(\"data.csv\")\n",
+    "lldf"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
